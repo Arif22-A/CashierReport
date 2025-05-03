@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laporan Kasir</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: #f2f2f2;
+    }
+    h2, h3 {
+      text-align: center;
+    }
+    label, input {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    input {
+      padding: 8px;
+      font-size: 16px;
+    }
+    .btn {
+      padding: 10px 15px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      margin-right: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .btn-print {
+      background: #28a745;
+    }
+    .btn-print:hover {
+      background: #1e7e34;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: left;
+    }
+    .pengeluaran-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    .pengeluaran-row input {
+      flex: 1;
+    }
+    @media print {
+      .btn, .pengeluaran-row button {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Laporan Kasir Harian</h2>
+
+  <label>Tanggal:
+    <input type="date" id="tanggal">
+  </label>
+  <label>Nama Petugas:
+    <input type="text" id="petugas" placeholder="Nama kasir">
+  </label>
+  <label>Modal Awal:
+    <input type="number" id="modal" placeholder="Contoh: 3700000">
+  </label>
+
+  <h3>Pemasukan</h3>
+  <label>Cash Masuk:
+    <input type="number" id="cash" placeholder="Contoh: 4449000">
+  </label>
+  <label>Transfer/QRIS:
+    <input type="number" id="qris" placeholder="Contoh: 1562000">
+  </label>
+  <label>EDC:
+    <input type="number" id="edc" placeholder="Contoh: 0">
+  </label>
+
+  <h3>Pengeluaran</h3>
+  <div id="pengeluaran-form">
+    <!-- Baris pengeluaran akan ditambahkan di sini -->
+  </div>
+  <button class="btn" onclick="tambahPengeluaran()">+ Tambah Pengeluaran</button>
+
+  <div>
+    <button class="btn" onclick="generateLaporan()">Hitung Laporan</button>
+    <button class="btn btn-print" onclick="window.print()">Download</button>
+  </div>
+
+  <div id="laporan"></div>
+
+  <script>
+  function formatRupiah(angka) {
+    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function tambahPengeluaran() {
+    const div = document.createElement("div");
+    div.className = "pengeluaran-row";
+    div.innerHTML = `
+      <input type="text" placeholder="Keterangan (contoh: Galon)">
+      <input type="number" placeholder="Harga Satuan">
+      <input type="number" placeholder="Jumlah Satuan">
+      <button onclick="this.parentElement.remove()">❌</button>
+    `;
+    document.getElementById("pengeluaran-form").appendChild(div);
+  }
+
+  function generateLaporan() {
+    const modal = parseInt(document.getElementById("modal").value) || 0;
+    const cash = parseInt(document.getElementById("cash").value) || 0;
+    const qris = parseInt(document.getElementById("qris").value) || 0;
+    const edc = parseInt(document.getElementById("edc").value) || 0;
+    const totalMasuk = cash + qris + edc;
+
+    const rows = document.querySelectorAll("#pengeluaran-form .pengeluaran-row");
+    let totalPengeluaran = 0;
+    let detailRows = "";
+
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll("input");
+      const keterangan = inputs[0].value;
+      const harga = parseInt(inputs[1].value) || 0;
+      const jumlah = parseInt(inputs[2].value) || 0;
+      const subtotal = harga * jumlah;
+      totalPengeluaran += subtotal;
+      detailRows += `<tr><td>${keterangan}</td><td>${jumlah} x ${formatRupiah(harga)}</td><td>${formatRupiah(subtotal)}</td></tr>`;
+    });
+
+    const sisa = modal + totalMasuk - totalPengeluaran;
+
+    document.getElementById("laporan").innerHTML = `
+      <h3>Rangkuman</h3>
+      <table>
+        <tr><th>Modal</th><td>${formatRupiah(modal)}</td></tr>
+        <tr><th>Total Masuk</th><td>${formatRupiah(totalMasuk)}</td></tr>
+        <tr><th>Total Pengeluaran</th><td>${formatRupiah(totalPengeluaran)}</td></tr>
+        <tr><th>Sisa Kas</th><td><strong>${formatRupiah(sisa)}</strong></td></tr>
+      </table>
+
+      <h3>Detail Pengeluaran</h3>
+      <table>
+        <tr><th>Keterangan</th><th>Qty x Harga</th><th>Total</th></tr>
+        ${detailRows}
+      </table>
+
+      <p>Petugas: <strong>${document.getElementById("petugas").value}</strong><br>
+      Tanggal: <strong>${document.getElementById("tanggal").value}</strong></p>
+    `;
+  }
+</script>
+</body>
+</html>
