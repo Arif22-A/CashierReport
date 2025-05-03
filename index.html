@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Attendance Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      min-width: 800px; /* supaya table gak mepet pas scroll */
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: center;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+    }
+    .form-section {
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+    .form-section input[type="text"] {
+      margin-bottom: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .staff-form {
+      margin-bottom: 40px;
+      border: 2px solid #000;
+      padding: 20px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        margin: 10px;
+      }
+      th, td {
+        font-size: 12px;
+        padding: 5px;
+      }
+      button {
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+    }
+
+    /* TAMBAHAN BARU UNTUK MOBILE VIEW */
+  @media (max-width: 768px) {
+    body {
+      margin: 10px;
+    }
+    
+    .form-section {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .staff-form {
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+      border: none;
+    }
+
+    th, td {
+      font-size: 13px;
+      padding: 8px;
+      min-width: 100px; /* Supaya kolom gak mepet */
+    }
+
+    input[type="text"], input[type="number"], input[type="date"] {
+      font-size: 14px;
+      padding: 8px;
+    }
+
+    button {
+      width: 100%;
+      margin: 8px 0;
+      font-size: 18px;
+    }
+  }
+
+  /* Style tambahan umum biar enak */
+  button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+  input, select {
+    font-size: 12px;
+    padding: 6px;
+    min-width: 60px;
+  }
+  
+  th, td {
+    font-size: 12px;
+    padding: 4px;
+  }
+  
+  table {
+    table-layout: auto;
+  }
+
+  </style>
+</head>
+<body>
+
+<div id="formsContainer">
+
+<div class="staff-form">
+  <div class="form-section">
+    <label>Company Name: <input type="text" class="companyName"></label><br>
+    <label>Reporter Name: <input type="text" class="reporterName"></label><br>
+    <label>Period: <input type="text" class="period"></label><br>
+    <label>Staff Name: <input type="text" class="staffName"></label>
+  </div>
+
+  <div class="table-responsive">
+    <table class="attendanceTable">
+      <thead>
+        <tr>
+          <th>NO</th>
+          <th>DATE</th>
+          <th>LATE ARRIVAL/MINUTE</th>
+          <th>DATE</th>
+          <th>DAY OFF</th>
+          <th>DATE</th>
+          <th>LEAVE</th>
+          <th>DATE</th>
+          <th>OVERTIME/HOUR</th>
+          <th>DATE</th>
+          <th>CASHBON</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><input type="text"></td>
+          <td><input type="number" class="lateArrival" onchange="updateTotals(this)"></td>
+          <td><input type="text"></td>
+          <td><input type="number" class="dayOff" onchange="updateTotals(this)"></td>
+          <td><input type="text"></td>
+          <td><input type="number" class="leave" onchange="updateTotals(this)"></td>
+          <td><input type="text"></td>
+          <td><input type="number" class="overtime" onchange="updateTotals(this)"></td>
+          <td><input type="text"></td>
+          <td><input type="number" class="cashbon" onchange="updateTotals(this)"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"><strong>TOTAL</strong></td>
+          <td><input type="number" class="totalLate" readonly></td>
+          <td></td>
+          <td><input type="number" class="totalDayOff" readonly></td>
+          <td></td>
+          <td><input type="number" class="totalLeave" readonly></td>
+          <td></td>
+          <td><input type="number" class="totalOvertime" readonly></td>
+          <td></td>
+          <td><input type="number" class="totalCashbon" readonly></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <button onclick="addRow(this)">Add Row</button>
+
+</div>
+
+</div>
+
+<br>
+
+<button onclick="addForm()">Add Staff Form</button>
+<button onclick="window.print()">Download</button>
+
+<script>
+function updateTotals(element) {
+  const form = element.closest('.staff-form');
+  const lateArrivalInputs = form.querySelectorAll('.lateArrival');
+  const dayOffInputs = form.querySelectorAll('.dayOff');
+  const leaveInputs = form.querySelectorAll('.leave');
+  const overtimeInputs = form.querySelectorAll('.overtime');
+  const cashbonInputs = form.querySelectorAll('.cashbon');
+
+  let lateArrival = 0;
+  let dayOff = 0;
+  let leave = 0;
+  let overtime = 0;
+  let cashbon = 0;
+
+  lateArrivalInputs.forEach(input => { lateArrival += Number(input.value) || 0; });
+  dayOffInputs.forEach(input => { dayOff += Number(input.value) || 0; });
+  leaveInputs.forEach(input => { leave += Number(input.value) || 0; });
+  overtimeInputs.forEach(input => { overtime += Number(input.value) || 0; });
+  cashbonInputs.forEach(input => { cashbon += Number(input.value) || 0; });
+
+  form.querySelector('.totalLate').value = lateArrival;
+  form.querySelector('.totalDayOff').value = dayOff;
+  form.querySelector('.totalLeave').value = leave;
+  form.querySelector('.totalOvertime').value = overtime;
+  form.querySelector('.totalCashbon').value = cashbon;
+}
+
+function addRow(button) {
+  const table = button.previousElementSibling.querySelector('table');
+  const tbody = table.querySelector('tbody');
+  const newRow = tbody.insertRow();
+  const rowCount = tbody.rows.length;
+
+  newRow.innerHTML = `
+    <td>${rowCount}</td>
+    <td><input type="text"></td>
+    <td><input type="number" class="lateArrival" onchange="updateTotals(this)"></td>
+    <td><input type="text"></td>
+    <td><input type="number" class="dayOff" onchange="updateTotals(this)"></td>
+    <td><input type="text"></td>
+    <td><input type="number" class="leave" onchange="updateTotals(this)"></td>
+    <td><input type="text"></td>
+    <td><input type="number" class="overtime" onchange="updateTotals(this)"></td>
+    <td><input type="text"></td>
+    <td><input type="number" class="cashbon" onchange="updateTotals(this)"></td>
+  `;
+}
+
+function addForm() {
+  const formsContainer = document.getElementById('formsContainer');
+  const newForm = document.createElement('div');
+  newForm.classList.add('staff-form');
+
+  newForm.innerHTML = `
+    <div class="form-section">
+      <label>Company Name: <input type="text" class="companyName"></label><br>
+      <label>Reporter Name: <input type="text" class="reporterName"></label><br>
+      <label>Period: <input type="text" class="period"></label><br>
+      <label>Staff Name: <input type="text" class="staffName"></label>
+    </div>
+
+    <div class="table-responsive">
+      <table class="attendanceTable">
+        <thead>
+          <tr>
+            <th>NO</th>
+            <th>DATE</th>
+            <th>LATE ARRIVAL/MINUTE</th>
+            <th>DATE</th>
+            <th>DAY OFF</th>
+            <th>DATE</th>
+            <th>LEAVE</th>
+            <th>DATE</th>
+            <th>OVERTIME/HOUR</th>
+            <th>DATE</th>
+            <th>CASHBON</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><input type="text"></td>
+            <td><input type="number" class="lateArrival" onchange="updateTotals(this)"></td>
+            <td><input type="text"></td>
+            <td><input type="number" class="dayOff" onchange="updateTotals(this)"></td>
+            <td><input type="text"></td>
+            <td><input type="number" class="leave" onchange="updateTotals(this)"></td>
+            <td><input type="text"></td>
+            <td><input type="number" class="overtime" onchange="updateTotals(this)"></td>
+            <td><input type="text"></td>
+            <td><input type="number" class="cashbon" onchange="updateTotals(this)"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"><strong>TOTAL</strong></td>
+            <td><input type="number" class="totalLate" readonly></td>
+            <td></td>
+            <td><input type="number" class="totalDayOff" readonly></td>
+            <td></td>
+            <td><input type="number" class="totalLeave" readonly></td>
+            <td></td>
+            <td><input type="number" class="totalOvertime" readonly></td>
+            <td></td>
+            <td><input type="number" class="totalCashbon" readonly></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <button onclick="addRow(this)">Add Row</button>
+  `;
+
+  formsContainer.appendChild(newForm);
+}
+</script>
+
+</body>
+</html>
